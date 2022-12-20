@@ -7,7 +7,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 
-# dfch=df.groupby('week_day').agg({'id':'sum'})
+
 
 def render_tab(df):
     day = dict(zip(df['tran_date'],df['tran_date'].dt.day_name()))
@@ -17,18 +17,14 @@ def render_tab(df):
 
     layout = html.Div([html.H1('Kanały sprzedaży',
                                 style={'text-align':'center'}),
-                        html.Div([html.Div([dcc.Dropdown(id='prod_dropdown', 
-                                                        options=[{'label':prod_cat,
-                                                                'value':prod_cat} for prod_cat in df['prod_cat'].unique()], 
-                                                        value=df['prod_cat'].unique()[0]),
-                                            dcc.Graph(id='pie-prod-cat',
+                        html.Div([html.Div([dcc.Dropdown(id='store_dropdown', 
+                                                        options=[{'label':Store_type,
+                                                                'value':Store_type} for Store_type in df['Store_type'].unique()], 
+                                                        value=df['Store_type'].unique()[0]),
+                                            dcc.Graph(id='pie-store-type',
                                                         figure=fig)],
                                             style={'width':'40%'}),
-                                html.Div([dcc.Dropdown(id='prod_dropdown', 
-                                                        options=[{'label':prod_cat,
-                                                                'value':prod_cat} for prod_cat in df['prod_cat'].unique()], 
-                                                        value=df['prod_cat'].unique()[0]),
-                                        dcc.Graph(id='barh-prod-subcat')],
+                                html.Div([dcc.Graph(id='barh-pokolenie')],
                                         style={'width':'40%'})],
                                 style={'display':'flex'}),
                         html.Div(id='temp-out')])
