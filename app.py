@@ -9,13 +9,16 @@ import dash_auth
 import plotly.graph_objs as go
 import tab1
 import tab2
+import tab3
+import numpy as np
 
 
 class db:
     def __init__(self):
         self.transactions = db.transation_init()
         self.cc = pd.read_csv(r'db\country_codes.csv',index_col=0)
-        self.customers = pd.read_csv(r'db\customers.csv',index_col=0)
+        self.customers = db.customers_init()
+        # self.customers = pd.read_csv(r'db\customers.csv',index_col=0)
         self.prod_info = pd.read_csv(r'db\prod_cat_info.csv')
 
     @staticmethod
@@ -32,6 +35,35 @@ class db:
                 return dt.datetime.strptime(x,'%d/%m/%Y')
         transactions['tran_date'] = transactions['tran_date'].apply(lambda x: convert_dates(x))
         return transactions
+    
+    # @staticmethod
+    def customers_init():
+        customers = pd.DataFrame()
+        customers = customers.append(pd.read_csv(r'db\customers.csv', index_col=0))
+        customers['DOB'] = pd.to_datetime(customers['DOB'], format='%d-%m-%Y')
+        # def convert_dates(x):
+        #     try:
+        #         return dt.datetime.strptime(x,'%d-%m-%Y')
+        #     except:
+        #         return dt.datetime.strptime(x,'%d/%m/%Y')
+        # customers['DOB'] = customers['DOB'].apply(lambda x: convert_dates(x))
+        # return customers
+
+        def pokolenie(row):
+            if row['DOB'] <= dt.datetime(1946,12,31):
+                return f'silent generation'
+            elif row['DOB'] <= dt.datetime(1964,12,31):
+                return f'baby boomers'
+            elif row['DOB'] <= dt.datetime(1979,12,31):
+                return f'pokolenie X'
+            elif row['DOB'] <= dt.datetime(1996,12,31):
+                return f'milenialsi'
+            elif row['DOB'] <= dt.datetime(1995,12,31):
+                return f'baby boomers'
+            else:
+                return f'pokolenie Z'
+        customers['Pokolenie'] = customers.apply(lambda row: pokolenie(row), axis=1)
+        return customers
 
     def merge(self):
         df = self.transactions.join(self.prod_info.drop_duplicates(subset=['prod_cat_code'])
@@ -44,6 +76,7 @@ class db:
         .set_index('customer_Id'),on='cust_id')
 
         self.merged = df
+
 df = db()
 df.merge()
 
@@ -53,12 +86,11 @@ USERNAME_PASSWORD = [['user', 'pass']]
 app = dash.Dash(__name__, external_stylesheets=external_stylesheets)
 auth = dash_auth.BasicAuth(app, USERNAME_PASSWORD)
 
-app.layout = html.Div([html.Div([dcc.Tabs(id='tabs',value='tab-1',children=[
-                            dcc.Tab(label='Sprzedaż globalna',value='tab-1'),
-                            dcc.Tab(label='Produkty',value='tab-2')
-                            ]),
-                            html.Div(id='tabs-content')
-                    ],style={'width':'80%','margin':'auto'})],
+app.layout = html.Div([html.Div([dcc.Tabs(id='tabs',value='tab-1',children=[dcc.Tab(label='Sprzedaż globalna', value='tab-1'),
+                                                                            dcc.Tab(label='Produkty',value='tab-2'),
+                                                                            dcc.Tab(label='Kanały sprzedaży', value='tab-3')]),
+                                            html.Div(id='tabs-content')],
+                                style={'width':'80%','margin':'auto'})],
                     style={'height':'100%'})
 
 @app.callback(Output('tabs-content','children'),[Input('tabs','value')])
@@ -67,6 +99,8 @@ def render_content(tab):
         return tab1.render_tab(df.merged)
     elif tab == 'tab-2':
         return tab2.render_tab(df.merged)
+    elif tab == 'tab-3':
+        return tab3.render_tab(df.merged)
 
 ## tab1 callbacks
 @app.callback(Output('bar-sales','figure'),
@@ -115,7 +149,20 @@ def tab2_barh_prod_subcat(chosen_cat):
     fig = go.Figure(data=data,layout=go.Layout(barmode='stack',margin={'t':20,}))
     return fig
 
+## tab3 callbacks
+@app.callback(Output('barh-prod-subcat','figure'),
+            [Input('prod_dropdown','value')])
+def tab2_barh_prod_subcat(chosen_cat):
 
+    grouped = df.merged[(df.merged['total_amt']>0)&(df.merged['prod_cat']==chosen_cat)].pivot_table(index='prod_subcat',columns='Gender',values='total_amt',aggfunc='sum').assign(_sum=lambda x: x['F']+x['M']).sort_values(by='_sum').round(2)
+
+    traces = []
+    for col in ['F','M']:
+        traces.append(go.Bar(x=grouped[col],y=grouped.index,orientation='h',name=col))
+
+    data = traces
+    fig = go.Figure(data=data,layout=go.Layout(barmode='stack',margin={'t':20,}))
+    return fig
 
 if __name__=='__main__':
     app.run_server(debug=True)
