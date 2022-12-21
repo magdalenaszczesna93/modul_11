@@ -58,8 +58,6 @@ class db:
                 return f'pokolenie X'
             elif row['DOB'] <= dt.datetime(1996,12,31):
                 return f'milenialsi'
-            elif row['DOB'] <= dt.datetime(1995,12,31):
-                return f'baby boomers'
             else:
                 return f'pokolenie Z'
         customers['Pokolenie'] = customers.apply(lambda row: pokolenie(row), axis=1)
@@ -149,15 +147,15 @@ def tab2_barh_prod_subcat(chosen_cat):
     fig = go.Figure(data=data,layout=go.Layout(barmode='stack',margin={'t':20,}))
     return fig
 
-## tab3 callbacks
-@app.callback(Output('barh-prod-subcat','figure'),
+# tab3 callbacks
+@app.callback(Output('barh-pokolenie','figure'),
             [Input('prod_dropdown','value')])
-def tab2_barh_prod_subcat(chosen_cat):
+def tab3_barh_pokolenie(chosen_cat):
 
-    grouped = df.merged[(df.merged['total_amt']>0)&(df.merged['prod_cat']==chosen_cat)].pivot_table(index='prod_subcat',columns='Gender',values='total_amt',aggfunc='sum').assign(_sum=lambda x: x['F']+x['M']).sort_values(by='_sum').round(2)
+    grouped = df.merged[(df.merged['total_amt']>0)&(df.merged['prod_cat']==chosen_cat)].pivot_table(index='Store_type',columns='Pokolenie',values='total_amt',aggfunc='sum').assign(_sum=lambda x: x['silent generation']+x['baby boomers']+x['pokolenie X']+x['milenialsi']+x['pokolenie Z']).sort_values(by='_sum').round(2)
 
     traces = []
-    for col in ['F','M']:
+    for col in ['silent generation','baby boomers','pokolenie X','milenialsi','pokolenie Z']:
         traces.append(go.Bar(x=grouped[col],y=grouped.index,orientation='h',name=col))
 
     data = traces
