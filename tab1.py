@@ -10,6 +10,6 @@ def render_tab(df):
                         end_date=df['tran_date'].max(),
                         display_format='YYYY-MM-DD')],style={'width':'100%','text-align':'center'}),
                         html.Div([html.Div([dcc.Graph(id='bar-sales')],style={'width':'50%'}),
-                        html.Div([dcc.Graph(id='choropleth-sales')],style={'width':'50%'})],style={'display':'flex'})
+                                html.Div([dcc.Graph(id='choropleth-sales')],style={'width':'50%'})],style={'display':'flex'})
                         ])
     return layout
