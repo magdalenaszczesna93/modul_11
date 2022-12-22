@@ -36,19 +36,11 @@ class db:
         transactions['tran_date'] = transactions['tran_date'].apply(lambda x: convert_dates(x))
         return transactions
     
-    # @staticmethod
-    def customers_init():
+    @staticmethod
+    def customers_init(): 
         customers = pd.DataFrame()
         customers = customers.append(pd.read_csv(r'db\customers.csv', index_col=0))
         customers['DOB'] = pd.to_datetime(customers['DOB'], format='%d-%m-%Y')
-        # def convert_dates(x):
-        #     try:
-        #         return dt.datetime.strptime(x,'%d-%m-%Y')
-        #     except:
-        #         return dt.datetime.strptime(x,'%d/%m/%Y')
-        # customers['DOB'] = customers['DOB'].apply(lambda x: convert_dates(x))
-        # return customers
-
         def pokolenie(row):
             if row['DOB'] <= dt.datetime(1946,12,31):
                 return f'silent generation'
@@ -60,8 +52,11 @@ class db:
                 return f'milenialsi'
             else:
                 return f'pokolenie Z'
+
         customers['Pokolenie'] = customers.apply(lambda row: pokolenie(row), axis=1)
+        
         return customers
+    
 
     def merge(self):
         df = self.transactions.join(self.prod_info.drop_duplicates(subset=['prod_cat_code'])
@@ -70,8 +65,7 @@ class db:
         df = df.join(self.prod_info.drop_duplicates(subset=['prod_sub_cat_code'])
         .set_index('prod_sub_cat_code')['prod_subcat'],on='prod_subcat_code',how='left')
 
-        df = df.join(self.customers.join(self.cc,on='country_code')
-        .set_index('customer_Id'),on='cust_id')
+        df = df.join(self.customers.join(self.cc,on='country_code').set_index('customer_Id'),on='cust_id')
 
         self.merged = df
 
@@ -148,19 +142,16 @@ def tab2_barh_prod_subcat(chosen_cat):
     return fig
 
 # tab3 callbacks
-@app.callback(Output('barh-pokolenie','figure'),
-            [Input('prod_dropdown','value')])
-def tab3_barh_pokolenie(chosen_cat):
 
-    grouped = df.merged[(df.merged['total_amt']>0)&(df.merged['prod_cat']==chosen_cat)].pivot_table(index='Store_type',columns='Pokolenie',values='total_amt',aggfunc='sum').assign(_sum=lambda x: x['silent generation']+x['baby boomers']+x['pokolenie X']+x['milenialsi']+x['pokolenie Z']).sort_values(by='_sum').round(2)
-
-    traces = []
-    for col in ['silent generation','baby boomers','pokolenie X','milenialsi','pokolenie Z']:
-        traces.append(go.Bar(x=grouped[col],y=grouped.index,orientation='h',name=col))
-
-    data = traces
-    fig = go.Figure(data=data,layout=go.Layout(barmode='stack',margin={'t':20,}))
+@app.callback(Output('pie-store-type','figure'),
+            [Input('store_dropdown','value')])
+def tab3_pie_store_type(Store_type):
+    day = dict(zip(df.merged['tran_date'],df.merged['tran_date'].dt.day_name()))
+    df.merged['week_day'] = df.merged['tran_date'].map(day)
+    grouped = df.merged[(df.merged['total_amt']>0)&(df.merged['Store_type']==Store_type)].groupby('week_day')['total_amt'].sum()
+    fig = go.Figure(data=[go.Pie(labels=grouped.index,values=grouped.values)],layout=go.Layout(title='Udział kanału sprzedaży w dniach tygodnia'))
     return fig
+
 
 if __name__=='__main__':
     app.run_server(debug=True)
