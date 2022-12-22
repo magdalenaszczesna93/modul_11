@@ -10,10 +10,19 @@ import matplotlib.pyplot as plt
 
 
 def render_tab(df):
-    day = dict(zip(df['tran_date'],df['tran_date'].dt.day_name()))
-    df['week_day'] = df['tran_date'].map(day)
-    grouped = df[df['total_amt']>0].groupby('week_day')['total_amt'].sum()
-    fig = go.Figure(data=[go.Pie(labels=grouped.index,values=grouped.values)],layout=go.Layout(title='Udział kanału sprzedaży w dniach tygodnia'))
+
+#     grouped = df[df['total_amt']>0].pivot_table(index='Store_type',columns='Pokolenie',values='total_amt',aggfunc='sum').assign(
+#         _sum=lambda x: x['silent generation']+x['baby boomers']+x['pokolenie X']+x['milenialsi']+x['pokolenie Z']).sort_values(by='_sum').round(2)
+
+
+#     traces = []
+#     for col in ['silent generation','baby boomers','pokolenie X','milenialsi','pokolenie Z']:
+#         traces.append(go.Bar(x=grouped[col],y=grouped.index,orientation='h',name=col))
+
+#     data = traces
+#     fig = go.Figure(data=data,layout=go.Layout(title='Kanały sprzedaży według pokolenia',barmode='stack'))
+
+#     grouped = df[df['total_amt']>0].groupby('Store_type')['total_amt'].sum().round(2).unstack()
 
     layout = html.Div([html.H1('Kanały sprzedaży',
                                 style={'text-align':'center'}),
@@ -21,11 +30,12 @@ def render_tab(df):
                                                         options=[{'label':Store_type,
                                                                 'value':Store_type} for Store_type in df['Store_type'].unique()], 
                                                         value=df['Store_type'].unique()[0]),
-                                            dcc.Graph(id='pie-store-type',
-                                                        figure=fig)],
-                                            style={'width':'40%'}),
-                                html.Div([dcc.Graph(id='barh-pokolenie')],
-                                        style={'width':'40%'})],
+                                            dcc.Graph(id='pie-store-type')],
+                                            style={'width':'50%'}),
+                                html.Div([dcc.Graph(id='barh-pokolenie'
+                                # , figure=fig 
+                                )],
+                                        style={'width':'50%'})],
                                 style={'display':'flex'}),
                         html.Div(id='temp-out')])
     return layout
