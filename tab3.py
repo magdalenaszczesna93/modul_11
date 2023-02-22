@@ -15,12 +15,12 @@ def render_tab(df):
 #         _sum=lambda x: x['silent generation']+x['baby boomers']+x['pokolenie X']+x['milenialsi']+x['pokolenie Z']).sort_values(by='_sum').round(2)
 
 
-#     traces = []
+    traces = []
 #     for col in ['silent generation','baby boomers','pokolenie X','milenialsi','pokolenie Z']:
 #         traces.append(go.Bar(x=grouped[col],y=grouped.index,orientation='h',name=col))
 
-#     data = traces
-#     fig = go.Figure(data=data,layout=go.Layout(title='Kanały sprzedaży według pokolenia',barmode='stack'))
+    data = traces
+    fig = go.Figure(data=data,layout=go.Layout(title='Kanały sprzedaży według pokolenia',barmode='stack'))
 
 #     grouped = df[df['total_amt']>0].groupby('Store_type')['total_amt'].sum().round(2).unstack()
 
@@ -33,7 +33,7 @@ def render_tab(df):
                                             dcc.Graph(id='pie-store-type')],
                                             style={'width':'50%'}),
                                 html.Div([dcc.Graph(id='barh-pokolenie'
-                                # , figure=fig 
+                                , figure=fig 
                                 )],
                                         style={'width':'50%'})],
                                 style={'display':'flex'}),
