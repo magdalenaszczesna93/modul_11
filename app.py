@@ -1,7 +1,19 @@
+# Zadanie: kanały sprzedaży
+# Do tej pory stworzyliśmy dwie zakładki dashboardu, które dotyczą ogólnego poziomu sprzedaży oraz analityki dotyczącej produktów. 
+# Twoim zadaniem będzie stworzenie trzeciej zakładki, która zawierać będzie dane dotyczące kanałów sprzedaży ('Store_type').
+
+# Zarząd powinien dostać informacje przynajmniej na temat tego, w jakich dniach tygodnia dokonuje się najwięcej sprzedaży w zależności od kanału sprzedaży.
+# Zarząd chciałby również dowiedzieć się czegoś więcej o klientach każdego z kanałów sprzedaży. Sposób prezentacji oraz funkcjonalność widgetów pozostawiamy Tobie.
+
+# Życzymy powodzenia, do dzieła!
+# Rozwiązanie prześlij Mentorowi.
+
+
 import pandas as pd
 import datetime as dt
 import os
 import dash
+from dash import dcc
 import dash_core_components as dcc
 import dash_html_components as html
 from dash.dependencies import Input, Output
@@ -15,6 +27,7 @@ import numpy as np
 
 class db:
     def __init__(self):
+        
         self.transactions = db.transation_init()
         self.cc = pd.read_csv(r'db\country_codes.csv',index_col=0)
         self.customers = db.customers_init()
